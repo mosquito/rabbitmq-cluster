@@ -60,7 +60,7 @@ def main():
 
         node_name = cluster_status()
 
-        if node_name == vhost:
+        if node_name in vhost:
             process.wait()
             return exit(process.returncode)
 
