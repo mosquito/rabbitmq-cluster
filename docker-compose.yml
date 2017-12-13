@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+
+  rabbitmq1:
+    #image: rabbitmq:3-management
+    build: .
+    hostname: rabbitmq1
+    volumes:
+      - ./mnesia1:/var/lib/rabbitmq
+    ports:
+      - 7672:5672
+      - 17672:15672
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=123123
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_VHOST=rabbitmq1
+
+  rabbitmq2:
+    #image: rabbitmq:3-management
+    build: .
+    links:
+      - rabbitmq1
+    hostname: rabbitmq2
+    volumes:
+      - ./mnesia2:/var/lib/rabbitmq
+    ports:
+      - 6672:5672
+      - 16672:15672
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=123123
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_VHOST=rabbitmq1
+
+  rabbitmq3:
+    #image: rabbitmq:3-management
+    build: .
+    links:
+      - rabbitmq1
+    hostname: rabbitmq3
+    volumes:
+      - ./mnesia3:/var/lib/rabbitmq
+    ports:
+      - 8672:5672
+      - 18672:15672
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=123123
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+      - RABBITMQ_DEFAULT_VHOST=rabbitmq1
