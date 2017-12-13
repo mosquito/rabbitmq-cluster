@@ -10,32 +10,12 @@ from ast import literal_eval
 from subprocess import check_call, check_output, Popen, PIPE
 
 
-def parse_output(input_string):
-    input_string = input_string.replace("\"", '\'')
-    input_string = re.sub('([a-zA-Z\d\@\<\>\_\"\']+)', r'"\1"', input_string)
-    input_string = re.sub('(\{[a-zA-Z\d\@\<\>\_\"\']+?),', r'\1:', input_string)
-    return literal_eval(input_string)
-
 def cluster_status():
-    res = enumerate(
-        check_output(
-            "rabbitmqctl cluster_status",
-            shell=True
-        ).decode().splitlines()
-    )
-
-    output = ''
-    current_node = None
-
-    for idx, line in res:
-        if not idx:
-            current_node = line.replace('Cluster status of node', '').rstrip('.').strip()
-            continue
-
-        output += line
-
-    output = [item for item in parse_output(output) if 'running_nodes' in item][0]['running_nodes']
-    return current_node.split('@', 1)[-1], output
+    return check_output(
+        "rabbitmqctl cluster_status", shell=True
+    ).decode().splitlines()[0].replace(
+        'Cluster status of node', ''
+    ).rstrip('.').strip()
 
 
 def healthcheck():
@@ -48,10 +28,13 @@ def healthcheck():
 
 
 def check_tcp_port(host, port):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex((host, port))
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex((host, port))
 
-    return result == 0
+        return result == 0
+    except:
+        return False
 
 
 def main():
@@ -75,10 +58,9 @@ def main():
             logging.info("Waiting for...")
             time.sleep(1)
 
-        node_name, node_list = cluster_status()
+        node_name = cluster_status()
 
         if node_name == vhost:
-            logging.info("Cluster status %r", node_list)
             process.wait()
             return exit(process.returncode)
 
